@@ -1,0 +1,13 @@
+{
+  "chainId": 97,
+  "deployer": "0x47C2054E40557aB52F0DCE699A2a50D7d798E3FE",
+  "rpc": "https://bsc-testnet.publicnode.com",
+  "agentCheck": {
+    "address": "0xa02f29701C9145e05Ffea7A42949b6D5BC3915f3",
+    "agentId": "0x8889b14748169A7C6995c5ae6F837Adb65A976A6",
+    "txHash": "0x86172cf4ecbab35268e002597bf3c5bd9116db8298db473c7c619a3aead7e380",
+    "gasUsed": 518993,
+    "blockNumber": 143609198,
+    "gasPriceWei": "111925170"
+  }
+}
