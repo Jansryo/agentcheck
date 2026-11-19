@@ -1,0 +1,24 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "MockAgentId.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\n/// @title MockAgentId — Minimal ERC-721 for TESTNET testing ONLY\n/// @notice Mimics the real Agent ID contract's balanceOf() gate.\n///         NOT the real contract, NOT for mainnet. Anyone may mint a\n///         test token to any address so the positive check-in path can\n///         be exercised on BSC testnet.\ncontract MockAgentId {\n    string public name = \"Mock Agent ID\";\n    string public symbol = \"MAID\";\n\n    mapping(address => uint256) private _balances;\n    mapping(uint256 => address) private _owners;\n    uint256 private _nextId = 1;\n\n    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);\n\n    function balanceOf(address owner) external view returns (uint256) {\n        require(owner != address(0), \"zero address\");\n        return _balances[owner];\n    }\n\n    function ownerOf(uint256 tokenId) external view returns (address) {\n        address o = _owners[tokenId];\n        require(o != address(0), \"nonexistent token\");\n        return o;\n    }\n\n    /// @notice Mint one test Agent ID to `to`. Testnet only.\n    function mint(address to) external returns (uint256 tokenId) {\n        tokenId = _nextId++;\n        _owners[tokenId] = to;\n        _balances[to] += 1;\n        emit Transfer(address(0), to, tokenId);\n    }\n\n    function totalSupply() external view returns (uint256) {\n        return _nextId - 1;\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "evmVersion": "paris",
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode.object",
+          "evm.deployedBytecode.object"
+        ]
+      }
+    }
+  }
+}
