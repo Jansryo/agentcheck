@@ -1,0 +1,13 @@
+{
+  "chainId": 56,
+  "deployer": "0x47C2054E40557aB52F0DCE699A2a50D7d798E3FE",
+  "rpc": "https://bsc-dataseed1.ninicoin.io",
+  "agentCheck": {
+    "address": "0x8fa6a4b08a6b37169410D8a39E7278D405D52d34",
+    "agentId": "0x60b9262456de011f7d15a54cdd8c48baaa8b022f",
+    "txHash": "0xbd8c3be5191938340579f7669c60c5cd16c02ce8f68a633acaa2443028db126c",
+    "gasUsed": 518993,
+    "blockNumber": 134475454,
+    "gasPriceWei": "50000000"
+  }
+}
