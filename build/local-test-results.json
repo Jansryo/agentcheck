@@ -1,0 +1,15 @@
+{
+  "pass": 29,
+  "fail": 0,
+  "deployGas": {
+    "MockAgentId": 371776,
+    "AgentCheck": 518993,
+    "AgentCheckReal": 518993
+  },
+  "txGas": {
+    "mockMint": 73339,
+    "checkIn1": 98090,
+    "checkIn2": 46922,
+    "checkIn3": 46790
+  }
+}

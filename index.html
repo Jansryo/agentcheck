@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgentCheck — Daily check-in for Binance Agent ID holders</title>
+<meta name="description" content="AgentCheck: a daily check-in dApp on BNB Chain. Only Binance Agent ID holders can check in once per UTC day and build a streak.">
+<style>
+  :root {
+    --accent: #0f766e;
+    --accent-soft: #f0fdfa;
+    --ink: #1c1917;
+    --muted: #78716c;
+    --line: #e7e5e4;
+    --bg: #fafaf9;
+    --card: #ffffff;
+    --good: #15803d;
+    --warn: #b45309;
+    --bad: #b91c1c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.5;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; }
+  header { text-align: center; margin-bottom: 28px; }
+  h1 { font-size: 2rem; margin: 0 0 4px; letter-spacing: -0.02em; }
+  header p { color: var(--muted); margin: 0; }
+  .badge {
+    display: inline-block; margin-top: 12px; padding: 3px 10px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent); font-size: 0.8rem; font-weight: 600;
+    border: 1px solid #ccfbf1;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 1.05rem; margin: 0 0 12px; }
+  .row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .row:first-of-type { border-top: none; }
+  .row .k { color: var(--muted); }
+  .row .v { font-weight: 600; text-align: right; word-break: break-all; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85em; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+  .pill.good { background: #f0fdf4; color: var(--good); }
+  .pill.warn { background: #fffbeb; color: var(--warn); }
+  .pill.bad { background: #fef2f2; color: var(--bad); }
+  .pill.neutral { background: #f5f5f4; color: var(--muted); }
+  button {
+    font: inherit; cursor: pointer; border: none; border-radius: 9px;
+    padding: 11px 18px; font-weight: 600;
+  }
+  button.primary { background: var(--accent); color: #fff; width: 100%; }
+  button.primary:hover:not(:disabled) { background: #0d5c56; }
+  button.secondary { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-row button { flex: 1; min-width: 140px; }
+  .note { color: var(--muted); font-size: 0.9rem; }
+  .status { margin-top: 12px; font-size: 0.9rem; }
+  .status.ok { color: var(--good); }
+  .status.err { color: var(--bad); }
+  .status.info { color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 7px 4px; border-top: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  td.num, th.num { text-align: right; }
+  .addr { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85em; }
+  a { color: var(--accent); }
+  footer { text-align: center; color: var(--muted); font-size: 0.85rem; margin-top: 32px; }
+  footer p { margin: 4px 0; }
+  .empty { color: var(--muted); text-align: center; padding: 18px 0 8px; }
+  #walletAddr { word-break: break-all; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>AgentCheck</h1>
+    <p>Daily check-in for Binance Agent ID holders on BNB Chain.</p>
+    <p class="note">Check in once per UTC day. Each consecutive day extends your streak — miss a day and it resets.</p>
+    <span class="badge" id="networkBadge">Loading network…</span>
+  </header>
+
+  <!-- Wallet -->
+  <div class="card">
+    <h2>Wallet</h2>
+    <div id="walletBox">
+      <p class="note">Connect with your browser wallet (Binance Wallet or MetaMask). Transactions are always confirmed by you in your wallet — this site never asks for a seed phrase or private key.</p>
+      <div class="btn-row">
+        <button class="primary" id="connectBtn">Connect Wallet</button>
+      </div>
+      <div class="status info" id="walletStatus"></div>
+    </div>
+    <div id="walletInfo" style="display:none">
+      <div class="row"><span class="k">Connected address</span><span class="v mono" id="walletAddr"></span></div>
+      <div class="row"><span class="k">Agent ID</span><span class="v" id="agentIdStatus"><span class="pill neutral">Checking…</span></span></div>
+      <div class="row"><span class="k">Network</span><span class="v" id="walletChain"></span></div>
+      <div class="status info" id="networkStatus"></div>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="secondary" id="switchBtn" style="display:none">Switch network</button>
+        <button class="secondary" id="disconnectBtn">Disconnect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Your stats -->
+  <div class="card">
+    <h2>Your check-in</h2>
+    <div id="statsEmpty" class="empty">Connect your wallet to see your streak and check-in status.</div>
+    <div id="statsBox" style="display:none">
+      <div class="row"><span class="k">Current streak</span><span class="v" id="statStreak">–</span></div>
+      <div class="row"><span class="k">Total check-ins</span><span class="v" id="statTotal">–</span></div>
+      <div class="row"><span class="k">Last check-in (UTC day)</span><span class="v" id="statLastDay">–</span></div>
+      <div class="row"><span class="k">Can check in today</span><span class="v" id="statCan">–</span></div>
+      <div style="margin-top:16px">
+        <button class="primary" id="checkInBtn">Check In</button>
+        <div class="status" id="checkInStatus"></div>
+      </div>
+    </div>
+    <div id="statsNoContract" class="empty" style="display:none">
+      The AgentCheck contract is not deployed on this network yet — check-ins open as soon as it is. Your Agent ID status above still works.
+    </div>
+  </div>
+
+  <!-- Contract -->
+  <div class="card">
+    <h2>Contract</h2>
+    <div class="row"><span class="k">AgentCheck</span><span class="v" id="contractAddr">–</span></div>
+    <div class="row"><span class="k">Agent ID (ERC-721)</span><span class="v mono" id="agentIdAddr">–</span></div>
+    <div class="row"><span class="k">Paused</span><span class="v" id="contractPaused">–</span></div>
+    <div class="row"><span class="k">Owner</span><span class="v mono" id="contractOwner">–</span></div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div class="card">
+    <h2>Leaderboard — most check-ins</h2>
+    <div id="boardLoading" class="empty">Loading…</div>
+    <div id="boardEmpty" class="empty" style="display:none">No check-ins yet. Be the first to check in once the contract is live.</div>
+    <table id="boardTable" style="display:none">
+      <thead><tr><th>#</th><th>Address</th><th class="num">Check-ins</th><th class="num">Best streak</th></tr></thead>
+      <tbody id="boardBody"></tbody>
+    </table>
+    <div class="status info" id="boardStatus"></div>
+  </div>
+
+  <footer>
+    <p>AgentCheck holds no funds and issues no tokens. The contract owner can only pause check-ins in an emergency.</p>
+    <p>Built for the Binance Agent ID Hackathon. <a id="repoLink" href="https://github.com/Jansryo/agentcheck" target="_blank" rel="noopener">Source code on GitHub</a></p>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+<script src="./config.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var net = CONFIG.networks[CONFIG.active];
+  var explorer = net.explorer;
+
+  // Minimal AgentCheck ABI (from build/AgentCheck.json).
+  var AGENT_CHECK_ABI = [
+    "function checkIn()",
+    "function canCheckInToday(address user) view returns (bool)",
+    "function getInfo(address user) view returns (uint256 streak, uint256 total, uint256 lastDay, bool canCheckIn)",
+    "function paused() view returns (bool)",
+    "function owner() view returns (address)",
+    "function agentId() view returns (address)",
+    "event CheckIn(address indexed user, uint256 day, uint256 streak, uint256 total)"
+  ];
+  var AGENT_ID_ABI = ["function balanceOf(address owner) view returns (uint256)"];
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function short(addr) { return addr ? addr.slice(0, 6) + "…" + addr.slice(-4) : "–"; }
+  function setStatus(el, msg, kind) { el.textContent = msg; el.className = "status " + (kind || "info"); }
+  function utcDayLabel(day) {
+    if (!day || day === 0n) return "Never";
+    var d = new Date(Number(day) * 86400000);
+    return d.toISOString().slice(0, 10) + " (day " + day.toString() + ")";
+  }
+
+  // ---- static / read-only state -------------------------------------------
+  var readProvider = null;
+  var agentCheck = null;   // read-only contract instance (null until deployed)
+  var agentId = null;      // read-only Agent ID contract (always known)
+  var signer = null;
+  var userAddress = null;
+  var isHolder = false;
+
+  $("networkBadge").textContent = net.label + (net.agentCheck ? "" : " — contract not deployed yet");
+  $("agentIdAddr").innerHTML = '<a href="' + explorer + "/address/" + CONFIG.agentId + '" target="_blank" rel="noopener">' + CONFIG.agentId + "</a>";
+
+  if (net.agentCheck) {
+    $("contractAddr").innerHTML = '<a href="' + explorer + "/address/" + net.agentCheck + '" target="_blank" rel="noopener">' + net.agentCheck + "</a>";
+  } else {
+    $("contractAddr").innerHTML = '<span class="pill warn">Not deployed yet</span>';
+    $("contractPaused").textContent = "–";
+    $("contractOwner").textContent = "–";
+    $("statsNoContract").style.display = "block";
+  }
+
+  function initReadProvider() {
+    try {
+      readProvider = new ethers.JsonRpcProvider(net.rpc);
+    } catch (e) {
+      readProvider = null;
+    }
+    if (readProvider) {
+      agentId = new ethers.Contract(CONFIG.agentId, AGENT_ID_ABI, readProvider);
+      if (net.agentCheck) agentCheck = new ethers.Contract(net.agentCheck, AGENT_CHECK_ABI, readProvider);
+    }
+  }
+
+  async function loadContractInfo() {
+    if (!agentCheck) return;
+    try {
+      var paused = await agentCheck.paused();
+      var owner = await agentCheck.owner();
+      $("contractPaused").textContent = paused ? "Yes — check-ins are paused" : "No";
+      $("contractOwner").textContent = owner;
+    } catch (e) {
+      $("contractPaused").textContent = "Unavailable";
+      $("contractOwner").textContent = "Unavailable";
+    }
+  }
+
+  // ---- leaderboard ---------------------------------------------------------
+  var CHECKIN_TOPIC = ethers.id("CheckIn(address,uint256,uint256,uint256)");
+
+  async function loadLeaderboard() {
+    var loading = $("boardLoading"), empty = $("boardEmpty"), table = $("boardTable");
+    if (!agentCheck || !net.deployedBlock) {
+      loading.style.display = "none";
+      empty.style.display = "block";
+      return;
+    }
+    try {
+      var latest = await readProvider.getBlockNumber();
+      var totals = new Map();   // address -> { total, bestStreak }
+      var from = net.deployedBlock;
+      var step = 2000;
+      var scanned = 0;
+      // Safety cap: at most 500,000 blocks per load.
+      while (from <= latest && scanned < 500000) {
+        var to = Math.min(from + step - 1, latest);
+        var logs = await readProvider.getLogs({
+          address: net.agentCheck, fromBlock: from, toBlock: to, topics: [CHECKIN_TOPIC]
+        });
+        for (var i = 0; i < logs.length; i++) {
+          var parsed = agentCheck.interface.parseLog(logs[i]);
+          var addr = parsed.args.user.toLowerCase();
+          var cur = totals.get(addr) || { total: 0, bestStreak: 0n };
+          cur.total = Number(parsed.args.total);
+          if (parsed.args.streak > cur.bestStreak) cur.bestStreak = parsed.args.streak;
+          totals.set(addr, cur);
+        }
+        scanned += (to - from + 1);
+        from = to + 1;
+      }
+      loading.style.display = "none";
+      if (totals.size === 0) { empty.style.display = "block"; return; }
+      var rows = Array.from(totals.entries())
+        .map(function (kv) { return { address: kv[0], total: kv[1].total, bestStreak: kv[1].bestStreak }; })
+        .sort(function (a, b) { return b.total - a.total; })
+        .slice(0, 10);
+      var html = "";
+      rows.forEach(function (r, idx) {
+        html += "<tr><td>" + (idx + 1) + "</td><td class=\"addr\">" +
+          '<a href="' + explorer + "/address/" + r.address + '" target="_blank" rel="noopener">' + short(r.address) + "</a>" +
+          "</td><td class=\"num\">" + r.total + "</td><td class=\"num\">" + r.bestStreak.toString() + "</td></tr>";
+      });
+      $("boardBody").innerHTML = html;
+      table.style.display = "table";
+    } catch (e) {
+      loading.style.display = "none";
+      empty.style.display = "block";
+      empty.textContent = "Leaderboard could not be loaded right now. Please try again later.";
+      setStatus($("boardStatus"), "Error: " + (e && e.message ? e.message : e), "err");
+    }
+  }
+
+  // ---- wallet --------------------------------------------------------------
+  function hasProvider() { return typeof window.ethereum !== "undefined"; }
+
+  async function refreshUserState() {
+    if (!userAddress) return;
+    // Agent ID holder check (public view on the Agent ID contract).
+    try {
+      var bal = await agentId.balanceOf(userAddress);
+      isHolder = bal > 0n;
+      $("agentIdStatus").innerHTML = isHolder
+        ? '<span class="pill good">Owned</span>'
+        : '<span class="pill bad">Not held</span> <span class="note">— check-in requires an Agent ID</span>';
+    } catch (e) {
+      isHolder = false;
+      $("agentIdStatus").innerHTML = '<span class="pill warn">Could not check</span>';
+    }
+
+    if (!agentCheck) {
+      $("statsBox").style.display = "none";
+      $("statsEmpty").style.display = "none";
+      $("statsNoContract").style.display = "block";
+      return;
+    }
+    try {
+      var info = await agentCheck.getInfo(userAddress);
+      $("statStreak").textContent = info.streak.toString();
+      $("statTotal").textContent = info.total.toString();
+      $("statLastDay").textContent = utcDayLabel(info.lastDay);
+      $("statCan").innerHTML = info.canCheckIn
+        ? '<span class="pill good">Yes</span>'
+        : '<span class="pill neutral">Already checked in today</span>';
+      $("statsEmpty").style.display = "none";
+      $("statsBox").style.display = "block";
+
+      var btn = $("checkInBtn");
+      if (!isHolder) {
+        btn.disabled = true;
+        setStatus($("checkInStatus"), "Check-in is disabled: this wallet does not hold an Agent ID.", "err");
+      } else if (!info.canCheckIn) {
+        btn.disabled = true;
+        setStatus($("checkInStatus"), "You have already checked in today. Come back tomorrow (UTC).", "info");
+      } else {
+        btn.disabled = false;
+        setStatus($("checkInStatus"), "", "info");
+      }
+    } catch (e) {
+      $("statsEmpty").style.display = "block";
+      $("statsEmpty").textContent = "Could not load your check-in data. Please try again later.";
+      setStatus($("checkInStatus"), "Error: " + (e && e.message ? e.message : e), "err");
+    }
+  }
+
+  async function connectWallet() {
+    if (!hasProvider()) {
+      setStatus($("walletStatus"), "No browser wallet found. Install Binance Wallet or MetaMask, then reload this page.", "err");
+      return;
+    }
+    try {
+      setStatus($("walletStatus"), "Waiting for wallet approval…", "info");
+      var provider = new ethers.BrowserProvider(window.ethereum);
+      var accounts = await provider.send("eth_requestAccounts", []);
+      signer = await provider.getSigner();
+      userAddress = accounts[0];
+      var network = await provider.getNetwork();
+      $("walletBox").style.display = "none";
+      $("walletInfo").style.display = "block";
+      $("walletAddr").textContent = userAddress;
+      $("walletChain").textContent = network.name + " (chain " + network.chainId + ")";
+      if (Number(network.chainId) !== net.chainId) {
+        setStatus($("networkStatus"), "You are on the wrong network. Please switch to " + net.label + " (chain " + net.chainId + ").", "err");
+        $("switchBtn").style.display = "inline-block";
+      } else {
+        setStatus($("networkStatus"), "Connected on " + net.label + ".", "ok");
+        $("switchBtn").style.display = "none";
+      }
+      setStatus($("walletStatus"), "", "info");
+      await refreshUserState();
+    } catch (e) {
+      var msg = (e && e.code === 4001) ? "Connection request was rejected in your wallet." : ("Could not connect: " + (e && e.message ? e.message : e));
+      setStatus($("walletStatus"), msg, "err");
+    }
+  }
+
+  async function switchNetwork() {
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0x" + net.chainId.toString(16) }]
+      });
+      setStatus($("networkStatus"), "Network switched. Reloading your data…", "ok");
+      $("switchBtn").style.display = "none";
+      await refreshUserState();
+    } catch (e) {
+      if (e && e.code === 4902) {
+        setStatus($("networkStatus"), "This network is not in your wallet yet. Please add " + net.label + " (chain " + net.chainId + ") manually, then reconnect.", "err");
+      } else {
+        setStatus($("networkStatus"), "Could not switch network: " + (e && e.message ? e.message : e), "err");
+      }
+    }
+  }
+
+  function disconnectWallet() {
+    signer = null; userAddress = null; isHolder = false;
+    $("walletInfo").style.display = "none";
+    $("walletBox").style.display = "block";
+    $("statsBox").style.display = "none";
+    $("statsEmpty").style.display = "block";
+    $("statsEmpty").textContent = "Connect your wallet to see your streak and check-in status.";
+    setStatus($("walletStatus"), "Disconnected.", "info");
+  }
+
+  async function doCheckIn() {
+    if (!signer || !agentCheck) return;
+    var btn = $("checkInBtn");
+    btn.disabled = true;
+    try {
+      setStatus($("checkInStatus"), "Please confirm the transaction in your wallet…", "info");
+      var contract = new ethers.Contract(net.agentCheck, AGENT_CHECK_ABI, signer);
+      var tx = await contract.checkIn();
+      setStatus($("checkInStatus"), "Transaction sent — waiting for confirmation…", "info");
+      var receipt = await tx.wait();
+      var link = explorer + "/tx/" + tx.hash;
+      $("checkInStatus").innerHTML = 'Checked in! <a href="' + link + '" target="_blank" rel="noopener">View transaction ' + short(tx.hash) + "</a> (block " + receipt.blockNumber + ").";
+      $("checkInStatus").className = "status ok";
+      await refreshUserState();
+      await loadLeaderboard();
+    } catch (e) {
+      var msg;
+      if (e && e.code === 4001) msg = "Transaction was rejected in your wallet.";
+      else if (e && e.message && e.message.indexOf("AlreadyCheckedIn") !== -1) msg = "You have already checked in today.";
+      else if (e && e.message && e.message.indexOf("NotAgentIdHolder") !== -1) msg = "This wallet does not hold an Agent ID, so it cannot check in.";
+      else if (e && e.message && e.message.indexOf("Paused") !== -1) msg = "Check-ins are paused right now. Please try again later.";
+      else msg = "Check-in failed: " + (e && e.message ? e.message : e);
+      setStatus($("checkInStatus"), msg, "err");
+      btn.disabled = false;
+    }
+  }
+
+  // ---- wire up ---------------------------------------------------------------
+  $("connectBtn").addEventListener("click", connectWallet);
+  $("disconnectBtn").addEventListener("click", disconnectWallet);
+  $("switchBtn").addEventListener("click", switchNetwork);
+  $("checkInBtn").addEventListener("click", doCheckIn);
+
+  if (hasProvider()) {
+    window.ethereum.on("accountsChanged", function (accounts) {
+      if (!accounts || accounts.length === 0) { disconnectWallet(); return; }
+      userAddress = accounts[0];
+      $("walletAddr").textContent = userAddress;
+      refreshUserState();
+    });
+    window.ethereum.on("chainChanged", function () { window.location.reload(); });
+  }
+
+  initReadProvider();
+  loadContractInfo();
+  loadLeaderboard();
+})();
+</script>
+</body>
+</html>
