@@ -45,8 +45,8 @@ const CONFIG = {
       chainId: 56,
       rpc: "https://bsc-dataseed1.defibit.io",
       explorer: "https://bscscan.com",
-      agentCheck: "0xE27a744e9451ed11e00EA87D665480DDf23cb47c",
-      deployedBlock: 134458739,
+      agentCheck: "0x8fa6a4b08a6b37169410D8a39E7278D405D52d34",
+      deployedBlock: 134475454,
     },
   },
 };
