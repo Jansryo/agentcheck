@@ -1,0 +1,21 @@
+{
+  "chainId": 97,
+  "deployer": "0x47C2054E40557aB52F0DCE699A2a50D7d798E3FE",
+  "rpc": "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
+  "mockAgentId": {
+    "address": "0x8889b14748169A7C6995c5ae6F837Adb65A976A6",
+    "txHash": "0x3890fad9aef1d80977e78eb2b8f51d0df170e4ab63761187dcb36fd160a37a84",
+    "gasUsed": 371776,
+    "blockNumber": 143593570,
+    "mintTxHash": "0x9e7e222fec7d9188afb644735d55896cba049acb48050625cf45af625d03786c",
+    "mintGasUsed": 73339
+  },
+  "agentCheck": {
+    "address": "0x29111B82004Eb26D78a7443a31eeB946999F6989",
+    "agentId": "0x8889b14748169A7C6995c5ae6F837Adb65A976A6",
+    "txHash": "0xbc6bce4560e5baf6996186c02ecf380602eff47a389f1be576bb9a8d7498e9c3",
+    "gasUsed": 518993,
+    "blockNumber": 143593591,
+    "gasPriceWei": "100000000"
+  }
+}

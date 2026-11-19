@@ -7,7 +7,8 @@ Each check-in extends the consecutive-day streak; missing a day resets it.
 **Live site:** https://jansryo.github.io/agentcheck/
 **Repo:** https://github.com/Jansryo/agentcheck
 
-- Agent ID contract (mainnet & testnet address): `0x60b9262456de011f7d15a54cdd8c48baaa8b022f`
+- Agent ID contract (BSC mainnet): `0x60b9262456de011f7d15a54cdd8c48baaa8b022f`
+- Agent ID on BSC testnet: NOT deployed by Binance — testnet uses a mock ERC-721 (`MockAgentId`, see below)
 - Deploy wallet (agent wallet): `0x47C2054E40557aB52F0DCE699A2a50D7d798E3FE`
 - Chain for testing: BSC Testnet (chain ID 97)
 - **Mainnet: NOT deployed. Do not deploy to mainnet without explicit user order.**
@@ -16,7 +17,7 @@ Each check-in extends the consecutive-day streak; missing a day resets it.
 
 | Network | AgentCheck address | Status |
 |---|---|---|
-| BSC Testnet (97) | TBD | pending testnet deployment (faucet blocked — see below) |
+| BSC Testnet (97) | `0x29111B82004Eb26D78a7443a31eeB946999F6989` | live 19 Nov 2026, Sourcify verified (exact_match), 1 check-in tested |
 | BSC Mainnet (56) | TBD | not deployed |
 
 When a contract is deployed, paste its address into `config.js`
@@ -162,47 +163,46 @@ Measured gas (local, deterministic for this bytecode):
 - Deploy AgentCheck: **518,993** gas; deploy MockAgentId: 371,776 gas
 - check-in #1: 98,090 gas; check-in #2/#3: ~46,900 gas; mock mint: 73,339 gas
 
-## BSC testnet deploy — STATUS: BLOCKED ON FAUCET (tBNB = 0)
+## BSC testnet deploy — STATUS: LIVE (19 Nov 2026 13:49 WIB)
 
-Deploy wallet `0x47C2…3FE` has **0 tBNB** on testnet (verified 2026-11-19 12:35 WIB).
-Every faucet needs a browser + bot-check the subagent cannot do:
+Deploy wallet `0x47C2…3FE` was funded with **0.0005 tBNB** from the ZalalenA
+faucet (claimed by the user from their phone browser — the official BNB
+faucet requires ≥ 0.002 BNB on BSC mainnet at the same address, and the
+ZalalenA Cloudflare check cannot be passed by an automated agent).
+Gas price on testnet was 0.1 gwei, so all four txs cost only 0.0001062 tBNB.
 
-| Faucet | Requirement | Verdict |
+| What | Address | Tx |
 |---|---|---|
-| Official BNB faucet — https://testnet.bnbchain.org/faucet-smart | hCaptcha (sitekey found in JS bundle) | Needs browser + human captcha solve |
-| QuickNode — https://faucet.quicknode.com/binance-smart-chain/bnb-testnet | "small mainnet balance" + bot check, no X post needed | Wallet HAS 0.000145 BNB mainnet — may qualify; still needs browser + bot check |
-| Chainstack — https://faucet.chainstack.com/bnb-testnet-faucet | ≥ 0.08 ETH on Ethereum mainnet + holding history | FAILS — wallet ETH balance is exactly 0 (verified via drpc.org) |
+| MockAgentId | `0x8889b14748169A7C6995c5ae6F837Adb65A976A6` | deploy `0x3890fad9aef1d80977e78eb2b8f51d0df170e4ab63761187dcb36fd160a37a84` (block 143593570), mint #1 to deployer `0x9e7e222fec7d9188afb644735d55896cba049acb48050625cf45af625d03786c` |
+| AgentCheck (mock-gated) | `0x29111B82004Eb26D78a7443a31eeB946999F6989` | deploy `0xbc6bce4560e5baf6996186c02ecf380602eff47a389f1be576bb9a8d7498e9c3` (block 143593591) |
+| Check-in test #1 | — | `0xdd6615c35762f37663c1bc7b78addcd1c834d9faa691ad1354830784e386942f` (block 143593628) → streak 1, total 1, lastDay 20776, `canCheckInToday` → false, `CheckIn` event emitted |
 
-**Unblock step (for parent agent / user, ~1 minute):** open the official faucet
-(or QuickNode) in a browser, paste `0x47C2054E40557aB52F0DCE699A2a50D7d798E3FE`,
-solve the captcha, claim 0.5 tBNB (1x/24h). Then run:
-
-```bash
-cd ~/workspace/goals/agent-id-hackathon-dapp-check-in-harian/agentcheck
-node scripts/deploy.js --mock   # MockAgentId + AgentCheck(mock), mint 1 to deployer, full positive path
-node scripts/deploy.js           # AgentCheck pointed at the REAL Agent ID (negative-gate test)
-```
-
-Then run the testnet test sequence (script the deployer runs after funding):
-1. Real-address AgentCheck: deployer `checkIn()` must revert (deployer holds no
-   Agent ID on testnet; note the real Agent ID contract is NOT deployed on
-   testnet at all — `getCode` returns empty — so the call reverts on ABI decode,
-   not `NotAgentIdHolder`; the true `NotAgentIdHolder` revert is proven on the
-   mock-pointed contract by a non-holder).
-2. Mock AgentCheck: deployer (mock holder) `checkIn()` succeeds → streak 1,
-   total 1; `canCheckInToday` flips false; 2nd same-day `checkIn()` reverts
-   `AlreadyCheckedIn`; a second address (non-holder) reverts `NotAgentIdHolder`.
+Testnet test sequence (remaining):
+1. Mock AgentCheck: deployer (mock holder) `checkIn()` succeeds → streak 1,
+   total 1; `canCheckInToday` flips false — DONE (tx above).
+2. 2nd same-day `checkIn()` must revert `AlreadyCheckedIn`; a second address
+   (non-holder) must revert `NotAgentIdHolder` — TODO (needs a second
+   address / second faucet claim; next ZalalenA claim ~60 min after the first).
 3. Streak day 2 can only be tested the next UTC day on a public testnet
    (no time travel) — repeat `checkIn()` tomorrow and confirm streak = 2.
+4. Real-address AgentCheck on testnet: the real Agent ID contract is NOT
+   deployed on testnet (`getCode` returns empty), so a `checkIn()` against
+   it reverts on ABI decode, not `NotAgentIdHolder` — informational only;
+   the true `NotAgentIdHolder` revert is proven on the mock-pointed contract
+   by a non-holder (step 2).
 
-## Source verification (after testnet deploy)
+## Source verification (testnet — DONE)
 
-- Sourcify supports chain 97 (verified via `https://sourcify.dev/server/chains`).
-  Verify with: `curl -X POST https://sourcify.dev/server/verify -F "chain=97" -F "address=<ADDR>" -F "files=@contracts/AgentCheck.sol"` — or the
-  standard-json route with compiler settings (solc 0.8.38, optimizer 200 runs,
-  evmVersion paris). NOT done yet — no contract deployed.
+- **Sourcify (chain 97): both contracts verified `exact_match`** (creation +
+  runtime), 2026-11-19T06:49:16Z. Verified via the v2 JSON API
+  (`POST /server/v2/verify/97/<address>`, body
+  `{stdJsonInput, compilerVersion: "v0.8.38+commit.1835d247",
+  contractIdentifier: "<file>:<contract>"}` — multipart and the old v1
+  endpoint do NOT work on this instance). Check:
+  `GET https://sourcify.dev/server/v2/contract/97/<address>`.
 - BscScan testnet verification needs an API key — NOT created (needs user approval).
-  Explorer link once deployed: `https://testnet.bscscan.com/address/<ADDR>`.
+  Explorer links: `https://testnet.bscscan.com/address/0x29111B82004Eb26D78a7443a31eeB946999F6989`
+  and `https://testnet.bscscan.com/address/0x8889b14748169A7C6995c5ae6F837Adb65A976A6`.
 - After verification, the contract page on BscScan shows the source, and the
   frontend links every address/transaction to the explorer.
 

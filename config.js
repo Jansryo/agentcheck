@@ -18,8 +18,9 @@ const CONFIG = {
   // address exists. Change to "mainnet" only when mainnet is live.
   active: "testnet",
 
-  // Binance Agent ID (ERC-721, non-transferable). Same address on
-  // BSC mainnet and BSC testnet.
+  // Binance Agent ID (ERC-721, non-transferable) — the real contract on
+  // BSC mainnet. It is NOT deployed on BSC testnet, so the testnet
+  // network below overrides it with the MockAgentId address.
   agentId: "0x60b9262456de011f7d15a54cdd8c48baaa8b022f",
 
   networks: {
@@ -30,9 +31,14 @@ const CONFIG = {
       explorer: "https://testnet.bscscan.com",
       // Paste the deployed AgentCheck address here, e.g.
       // agentCheck: "0xAbC...123",
-      agentCheck: null,
+      agentCheck: "0x29111B82004Eb26D78a7443a31eeB946999F6989",
       // Block the contract was deployed in (for the leaderboard scan).
-      deployedBlock: null,
+      deployedBlock: 143593591,
+      // Mock Agent ID (testnet only): the real Agent ID contract is not
+      // deployed on BSC testnet, so the testnet AgentCheck gates on this
+      // mock ERC-721 instead. Deployed 19 Nov 2026, tx
+      // 0x3890fad9aef1d80977e78eb2b8f51d0df170e4ab63761187dcb36fd160a37a84.
+      agentId: "0x8889b14748169A7C6995c5ae6F837Adb65A976A6",
     },
     mainnet: {
       label: "BNB Smart Chain",

@@ -159,6 +159,10 @@
 
   var net = CONFIG.networks[CONFIG.active];
   var explorer = net.explorer;
+  // Gate address for the holder check: a per-network override when set
+  // (testnet uses the MockAgentId — the real Agent ID is not on testnet),
+  // otherwise the real Agent ID contract.
+  var gateAddr = net.agentId || CONFIG.agentId;
 
   // Minimal AgentCheck ABI (from build/AgentCheck.json).
   var AGENT_CHECK_ABI = [
@@ -191,7 +195,7 @@
   var isHolder = false;
 
   $("networkBadge").textContent = net.label + (net.agentCheck ? "" : " — contract not deployed yet");
-  $("agentIdAddr").innerHTML = '<a href="' + explorer + "/address/" + CONFIG.agentId + '" target="_blank" rel="noopener">' + CONFIG.agentId + "</a>";
+  $("agentIdAddr").innerHTML = '<a href="' + explorer + "/address/" + gateAddr + '" target="_blank" rel="noopener">' + gateAddr + "</a>";
 
   if (net.agentCheck) {
     $("contractAddr").innerHTML = '<a href="' + explorer + "/address/" + net.agentCheck + '" target="_blank" rel="noopener">' + net.agentCheck + "</a>";
@@ -209,7 +213,7 @@
       readProvider = null;
     }
     if (readProvider) {
-      agentId = new ethers.Contract(CONFIG.agentId, AGENT_ID_ABI, readProvider);
+      agentId = new ethers.Contract(gateAddr, AGENT_ID_ABI, readProvider);
       if (net.agentCheck) agentCheck = new ethers.Contract(net.agentCheck, AGENT_CHECK_ABI, readProvider);
     }
   }
