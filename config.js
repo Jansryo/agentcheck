@@ -14,9 +14,9 @@
  */
 
 const CONFIG = {
-  // Which network the site uses by default. "testnet" until a mainnet
-  // address exists. Change to "mainnet" only when mainnet is live.
-  active: "testnet",
+  // Which network the site uses by default. "mainnet" — mainnet is live
+  // since 19 Nov 2026 13:54 WIB.
+  active: "mainnet",
 
   // Binance Agent ID (ERC-721, non-transferable) — the real contract on
   // BSC mainnet. It is NOT deployed on BSC testnet, so the testnet
@@ -45,8 +45,8 @@ const CONFIG = {
       chainId: 56,
       rpc: "https://bsc-dataseed1.defibit.io",
       explorer: "https://bscscan.com",
-      agentCheck: null,
-      deployedBlock: null,
+      agentCheck: "0xE27a744e9451ed11e00EA87D665480DDf23cb47c",
+      deployedBlock: 134458739,
     },
   },
 };

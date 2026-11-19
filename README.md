@@ -11,14 +11,14 @@ Each check-in extends the consecutive-day streak; missing a day resets it.
 - Agent ID on BSC testnet: NOT deployed by Binance — testnet uses a mock ERC-721 (`MockAgentId`, see below)
 - Deploy wallet (agent wallet): `0x47C2054E40557aB52F0DCE699A2a50D7d798E3FE`
 - Chain for testing: BSC Testnet (chain ID 97)
-- **Mainnet: NOT deployed. Do not deploy to mainnet without explicit user order.**
+- **Mainnet: LIVE since 19 Nov 2026 ~13:54 WIB** — AgentCheck `0xE27a744e9451ed11e00EA87D665480DDf23cb47c` (block 134458739), Sourcify verified (exact_match), first check-in tested on-chain. No top-up was used; deploy + check-in cost ~0.0000325 BNB total from the agent wallet's existing balance.
 
 ## Contract addresses
 
 | Network | AgentCheck address | Status |
 |---|---|---|
 | BSC Testnet (97) | `0x29111B82004Eb26D78a7443a31eeB946999F6989` | live 19 Nov 2026, Sourcify verified (exact_match), 1 check-in tested |
-| BSC Mainnet (56) | TBD | not deployed |
+| BSC Mainnet (56) | `0xE27a744e9451ed11e00EA87D665480DDf23cb47c` | live 19 Nov 2026, Sourcify verified (exact_match), 1 check-in tested (baw wallet rj31.ai) |
 
 When a contract is deployed, paste its address into `config.js`
 (`networks.testnet.agentCheck` / `networks.mainnet.agentCheck`) together
@@ -191,6 +191,36 @@ Testnet test sequence (remaining):
    the true `NotAgentIdHolder` revert is proven on the mock-pointed contract
    by a non-holder (step 2).
 
+## BSC mainnet deploy — STATUS: LIVE (19 Nov 2026 ~13:54 WIB)
+
+Deployed with NO top-up, from the agent wallet's existing balance
+(0.0001452984 BNB). Preflight gate: gas price 0.05 gwei, deploy +
+check-in + 0.00002 BNB margin = 0.0000509 BNB required — well within
+balance. Gas price cap in the preflight was 0.2 gwei; above that the
+deploy would have aborted.
+
+| What | Address | Tx |
+|---|---|---|
+| AgentCheck (real Agent ID gate) | `0xE27a744e9451ed11e00EA87D665480DDf23cb47c` | deploy `0xd403a749569baf0b10e0688dcde39e89a64ad43e1eaaea371e879d67a6af48d3` (block 134458739), gas 518,993 @ 0.05 gwei = 0.00002594965 BNB |
+| Check-in test #1 (baw wallet, Agent ID rj31.ai) | — | `0x1f4a35fb35f92d4d842f4b57f59f2f3ff4577ad0e00e571183cbd66b9455f182` (block 134458900), gas 98,127 @ 0.0664 gwei = 0.0000065148 BNB → streak 1, total 1, lastDay 20776, `canCheckInToday` → false, `CheckIn` event emitted |
+
+Balances after: deployer 0.00011934875 BNB, baw wallet 0.0001000704 BNB.
+Total spent: ~0.0000325 BNB (~$0.019). Sourcify chain 56:
+`exact_match` (creation + runtime), verified 2026-11-19T06:54:27Z
+(verificationId 3c26c652-c8ff-4f8a-b277-5174ae88f6e8). BscScan
+verification still pending — no API key on file (no account created).
+Frontend `config.js` now points at mainnet (`active: "mainnet"`).
+
+Mainnet test sequence (remaining):
+1. 2nd same-day `checkIn()` must revert `AlreadyCheckedIn` — the baw
+   wallet already checked in today, so a repeat attempt (preview only)
+   should fail simulation; do NOT broadcast a reverting tx.
+2. Non-holder `checkIn()` must revert `NotAgentIdHolder` — proven in
+   local Ganache tests (29/29); on-chain mainnet proof needs a second
+   address with 0 Agent ID balance.
+3. Streak day 2: repeat `checkIn()` tomorrow (next UTC day) and confirm
+   streak = 2.
+
 ## Source verification (testnet — DONE)
 
 - **Sourcify (chain 97): both contracts verified `exact_match`** (creation +
@@ -203,8 +233,24 @@ Testnet test sequence (remaining):
 - BscScan testnet verification needs an API key — NOT created (needs user approval).
   Explorer links: `https://testnet.bscscan.com/address/0x29111B82004Eb26D78a7443a31eeB946999F6989`
   and `https://testnet.bscscan.com/address/0x8889b14748169A7C6995c5ae6F837Adb65A976A6`.
+- **Sourcify (chain 56, mainnet): AgentCheck verified `exact_match`**
+  (creation + runtime), 2026-11-19T06:54:27Z. Same v2 JSON API as above
+  (`POST /server/v2/verify/56/0xE27a744e9451ed11e00EA87D665480DDf23cb47c`).
+  Script: `scripts/verify_sourcify.js <chainId> <address>`. Note: Sourcify's
+  own Etherscan forwarding hit "Daily limit of 500 source code submissions
+  reached" — that is Sourcify's side only, not BscScan verification.
+- BscScan mainnet verification needs an API key — NOT created (no account
+  made on the user's behalf). Explorer link:
+  `https://bscscan.com/address/0xE27a744e9451ed11e00EA87D665480DDf23cb47c`.
 - After verification, the contract page on BscScan shows the source, and the
   frontend links every address/transaction to the explorer.
+
+## Mainnet deploy cost — ACTUAL (19 Nov 2026 ~13:54 WIB)
+
+- Deploy gas: 518,993 @ 0.05 gwei = **0.00002594965 BNB ≈ $0.015** (as estimated)
+- Check-in #1 gas: 98,127 @ 0.0664 gwei = 0.0000065148 BNB (~$0.004)
+- **Total: ~0.0000325 BNB (~$0.019)** — no top-up needed; deployer balance
+  after deploy: 0.00011934875 BNB
 
 ## Mainnet deploy cost estimate (measured 2026-11-19 ~12:40 WIB)
 
