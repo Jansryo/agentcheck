@@ -233,6 +233,10 @@ Mainnet test sequence (remaining):
 - BscScan testnet verification needs an API key — NOT created (needs user approval).
   Explorer links: `https://testnet.bscscan.com/address/0x29111B82004Eb26D78a7443a31eeB946999F6989`
   and `https://testnet.bscscan.com/address/0x8889b14748169A7C6995c5ae6F837Adb65A976A6`.
+  Note (2026-11-19): BscScan's API dashboard now routes API access through
+  Etherscan API V2 — one Etherscan API key verifies BSC too (chainid 56).
+  Script ready: `scripts/verify_etherscan_v2.js` (dry-run verified; needs
+  `ETHERSCAN_API_KEY`).
 - **Sourcify (chain 56, mainnet): AgentCheck verified `exact_match`**
   (creation + runtime), 2026-11-19T06:54:27Z. Same v2 JSON API as above
   (`POST /server/v2/verify/56/0xE27a744e9451ed11e00EA87D665480DDf23cb47c`).
@@ -242,6 +246,10 @@ Mainnet test sequence (remaining):
 - BscScan mainnet verification needs an API key — NOT created (no account
   made on the user's behalf). Explorer link:
   `https://bscscan.com/address/0xE27a744e9451ed11e00EA87D665480DDf23cb47c`.
+  Path: Etherscan API V2 key (BscScan API dashboard now routes through it),
+  `scripts/verify_etherscan_v2.js` — dry-run verified 2026-11-19
+  (constructor args cross-checked against the on-chain deploy tx input:
+  match). Run: `ETHERSCAN_API_KEY=<key> node scripts/verify_etherscan_v2.js`.
 - After verification, the contract page on BscScan shows the source, and the
   frontend links every address/transaction to the explorer.
 
